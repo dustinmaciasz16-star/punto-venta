@@ -81,29 +81,85 @@ export const InventoryPage = () => {
     e.preventDefault();
 
     try {
-      const res = await api.post('/productos/presentaciones.php', {
-        id_producto: selectedProduct.id_producto,
-        nombre_presentacion: presentationForm.nombre_presentacion,
-        cantidad_unidades: presentationForm.cantidad_unidades,
-        precio_venta: presentationForm.precio_venta
-      });
+      let res;
+
+      if (editingPresentationId) {
+        res = await api.put('/productos/presentaciones.php', {
+          id_presentacion: editingPresentationId,
+          nombre_presentacion: presentationForm.nombre_presentacion,
+          cantidad_unidades: presentationForm.cantidad_unidades,
+          precio_venta: presentationForm.precio_venta
+        });
+      } else {
+        res = await api.post('/productos/presentaciones.php', {
+          id_producto: selectedProduct.id_producto,
+          nombre_presentacion: presentationForm.nombre_presentacion,
+          cantidad_unidades: presentationForm.cantidad_unidades,
+          precio_venta: presentationForm.precio_venta
+        });
+      }
 
       if (res.data.status === 'success') {
-        alert("Presentación guardada correctamente.");
+        alert(
+          editingPresentationId
+            ? "Presentación actualizada correctamente."
+            : "Presentación guardada correctamente."
+        );
+
+        const updated = await api.get(
+          `/ productos / presentaciones.php ? id_producto = ${selectedProduct.id_producto} `
+        );
+
+        setPresentations(updated.data.data);
+
+        setPresentationForm(initialPresentationState);
+        setEditingPresentationId(null);
+        setShowPresentationForm(false);
+      }
+
+    } catch (err) {
+      alert(
+        err.response?.data?.message ||
+        "Error al guardar la presentación."
+      );
+    }
+  };
+
+  const handleEditPresentation = (presentation) => {
+    setPresentationForm({
+      nombre_presentacion: presentation.nombre_presentacion,
+      cantidad_unidades: presentation.cantidad_unidades,
+      precio_venta: presentation.precio_venta
+    });
+
+    setEditingPresentationId(presentation.id_presentacion);
+    setShowPresentationForm(true);
+  };
+
+  const handleDeletePresentation = async (id) => {
+    if (!window.confirm("¿Seguro que deseas eliminar esta presentación?")) {
+      return;
+    }
+
+    try {
+      const res = await api.delete(
+        `/productos/presentaciones.php?id=${id}`
+      );
+
+      if (res.data.status === 'success') {
+        alert("Presentación eliminada correctamente.");
 
         const updated = await api.get(
           `/productos/presentaciones.php?id_producto=${selectedProduct.id_producto}`
         );
 
         setPresentations(updated.data.data);
-
-        setPresentationForm(initialPresentationState);
-        setShowPresentationForm(false);
       }
+
     } catch (err) {
       alert(
         err.response?.data?.message ||
-        "Error al guardar la presentación."
+        "Error al eliminar la presentación."
       );
     }
   };
@@ -141,7 +197,7 @@ export const InventoryPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar este producto?")) {
       try {
-        const res = await api.delete(`/productos/index.php?id=${id}`);
+        const res = await api.delete(`/ productos / index.php ? id = ${id} `);
         if (res.data.status === 'success') {
           fetchProducts();
         }
@@ -334,6 +390,10 @@ export const InventoryPage = () => {
                       <strong>
                         ${parseFloat(presentation.precio_venta).toFixed(2)}
                       </strong>
+                      <div className="presentation-actions">
+                        <button className="btn-action" onClick={() => handleEditPresentation(presentation)} > ✏️ </button>
+                        <button className="btn-action btn-danger-soft" onClick={() => handleDeletePresentation(presentation.id_presentacion)} > 🗑️ </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -353,7 +413,11 @@ export const InventoryPage = () => {
                   onSubmit={handlePresentationSubmit}
                   className="presentation-form"
                 >
-                  <h3>Nueva presentación</h3>
+                  <h3>
+                    {editingPresentationId
+                      ? 'Editar presentación'
+                      : 'Nueva presentación'}
+                  </h3>
 
                   <input
                     type="text"
@@ -387,7 +451,7 @@ export const InventoryPage = () => {
 
                   <div className="buttons-group">
                     <button type="submit" className="btn-submit">
-                      Guardar
+                      {editingPresentationId ? 'Guardar cambios' : 'Guardar'}
                     </button>
 
                     <button
@@ -396,6 +460,7 @@ export const InventoryPage = () => {
                       onClick={() => {
                         setShowPresentationForm(false);
                         setPresentationForm(initialPresentationState);
+                        setEditingPresentationId(null);
                       }}
                     >
                       Cancelar
