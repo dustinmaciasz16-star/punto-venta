@@ -123,3 +123,159 @@ html, body {
   background-color: rgba(239, 68, 68, 0.15);
   color: #f87171 !important;
 }
+
+/* ==========================================
+   HEADER DEL SIDEBAR
+   ========================================== */
+
+.sidebar-header {
+  position: relative;
+}
+
+.sidebar-close {
+  display: none;
+}
+
+
+/* ==========================================
+   CONTENIDO DEL DASHBOARD
+   ========================================== */
+
+.dashboard-content {
+  flex: 1;
+  min-width: 0;
+}
+
+
+/* ==========================================
+   BOTÓN MENÚ MÓVIL
+   ========================================== */
+
+.menu-toggle {
+  display: none;
+}
+
+
+/* ==========================================
+   FONDO OSCURO DEL MENÚ MÓVIL
+   ========================================== */
+
+.sidebar-overlay {
+  display: none;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+
+  .dashboard-container {
+    position: relative;
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 260px;
+
+    z-index: 1000;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+
+    overflow-y: auto;
+  }
+
+  .dashboard-container.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-title {
+    flex: 1;
+  }
+
+  .sidebar-close {
+    display: block;
+
+    border: none;
+    background: transparent;
+
+    color: #94a3b8;
+
+    font-size: 1.25rem;
+
+    cursor: pointer;
+
+    padding: 0.5rem;
+  }
+
+  .sidebar-close:hover {
+    color: #ffffff;
+  }
+
+  .menu-toggle {
+    display: flex;
+
+    position: fixed;
+
+    top: 1rem;
+    left: 1rem;
+
+    z-index: 900;
+
+    width: 42px;
+    height: 42px;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #0f172a;
+    color: #ffffff;
+
+    font-size: 1.25rem;
+
+    cursor: pointer;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .menu-toggle:hover {
+    background-color: #1e293b;
+  }
+
+  .sidebar-overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 999;
+
+    background-color: rgba(15, 23, 42, 0.5);
+  }
+
+  .dashboard-content {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .main-content {
+    padding: 4.5rem 1rem 1.5rem;
+  }
+}
