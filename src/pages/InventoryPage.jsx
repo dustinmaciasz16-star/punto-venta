@@ -12,6 +12,7 @@ export const InventoryPage = () => {
   const [presentations, setPresentations] = useState([]);
   const [showPresentations, setShowPresentations] = useState(false);
   const [showPresentationForm, setShowPresentationForm] = useState(false);
+  const [editingPresentationId, setEditingPresentationId] = useState(null);
 
   const initialPresentationState = {
     nombre_presentacion: '',
@@ -107,7 +108,7 @@ export const InventoryPage = () => {
         );
 
         const updated = await api.get(
-          `/ productos / presentaciones.php ? id_producto = ${selectedProduct.id_producto} `
+          `/productos/presentaciones.php?id_producto=${selectedProduct.id_producto}`
         );
 
         setPresentations(updated.data.data);
@@ -143,7 +144,7 @@ export const InventoryPage = () => {
 
     try {
       const res = await api.delete(
-        `/productos/presentaciones.php?id=${id}`
+        `/productos/index.php?id=${id}`
       );
 
       if (res.data.status === 'success') {
