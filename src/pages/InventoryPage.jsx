@@ -12,7 +12,6 @@ export const InventoryPage = () => {
   const initialFormState = {
     nombre_producto: '',
     descripcion: '',
-    stock: '',
     stock_minimo: '5',
     stock_maximo: '50'
   };
@@ -65,7 +64,6 @@ export const InventoryPage = () => {
     setFormData({
       nombre_producto: p.nombre_producto || '',
       descripcion: p.descripcion || '',
-      stock: p.stock || '',
       stock_minimo: p.stock_minimo || '5',
       stock_maximo: p.stock_maximo || '50'
     });
@@ -110,18 +108,6 @@ export const InventoryPage = () => {
               name="nombre_producto"
               placeholder="Nombre *"
               value={formData.nombre_producto}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <input
-              type="number"
-              min="0"
-              name="stock"
-              placeholder="Stock *"
-              value={formData.stock}
               onChange={handleChange}
               required
             />
