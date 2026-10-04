@@ -10,7 +10,10 @@ export const DashboardHome = () => {
     totalProductos: 0,
     totalMovimientos: 0,
     sinStock: 0,
-    stockBajo: 0
+    stockBajo: 0,
+    ventasHoy: 0,
+    facturasHoy: 0,
+    comprasHoy: 0
   });
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +27,10 @@ export const DashboardHome = () => {
           totalProductos: response.data.data.totalProductos,
           totalMovimientos: response.data.data.totalMovimientos,
           sinStock: response.data.data.sinStock,
-          stockBajo: response.data.data.stockBajo
+          stockBajo: response.data.data.stockBajo,
+          ventasHoy: response.data.data.ventasHoy,
+          facturasHoy: response.data.data.facturasHoy,
+          comprasHoy: response.data.data.comprasHoy
         });
         setProductos(response.data.data.productos || []);
       }
@@ -45,29 +51,40 @@ export const DashboardHome = () => {
 
       {/* Grilla de Métricas en Tiempo Real */}
       <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-number">{loading ? '...' : metrics.totalProductos}</div>
-          <div className="metric-label">Total Productos</div>
-        </div>
 
         <div className="metric-card">
-          <div className="metric-number">{loading ? '...' : metrics.totalMovimientos}</div>
-          <div className="metric-label">Total Movimientos</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-number" style={{ color: metrics.sinStock > 0 ? '#e11d48' : '#2b7a9b' }}>
-            {loading ? '...' : metrics.sinStock}
+          <div className="metric-number">
+            {loading ? '...' : `$${metrics.ventasHoy.toFixed(2)}`}
           </div>
-          <div className="metric-label">Sin Stock</div>
+          <div className="metric-label">Ventas de Hoy</div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-number" style={{ color: metrics.stockBajo > 0 ? '#d97706' : '#2b7a9b' }}>
+          <div className="metric-number">
+            {loading ? '...' : metrics.facturasHoy}
+          </div>
+          <div className="metric-label">Facturas de Hoy</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-number">
+            {loading ? '...' : `$${metrics.comprasHoy.toFixed(2)}`}
+          </div>
+          <div className="metric-label">Compras de Hoy</div>
+        </div>
+
+        <div className="metric-card">
+          <div
+            className="metric-number"
+            style={{
+              color: metrics.stockBajo > 0 ? '#d97706' : '#2b7a9b'
+            }}
+          >
             {loading ? '...' : metrics.stockBajo}
           </div>
           <div className="metric-label">Stock Bajo</div>
         </div>
+
       </div>
 
       {/* Acciones Rápidas */}
@@ -100,9 +117,9 @@ export const DashboardHome = () => {
               <tr>
                 <th>Código</th>
                 <th>Producto</th>
-                <th>Categoría</th>
-                <th>Precio Venta</th>
                 <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Máximo</th>
                 <th>Estado Stock</th>
               </tr>
             </thead>
@@ -128,8 +145,11 @@ export const DashboardHome = () => {
                     <tr key={prod.id_producto}>
                       <td><strong>{prod.codigo_producto}</strong></td>
                       <td>{prod.nombre_producto}</td>
-                      <td>{prod.nombre_categoria || 'Sin Categoría'}</td>
-                      <td className="amount">${parseFloat(prod.precio_venta).toFixed(2)}</td>
+                      <td>
+                        <strong>{prod.stock}</strong>
+                      </td>
+                      <td>{prod.stock_minimo}</td>
+                      <td>{prod.stock_maximo}</td>
                       <td><strong>{prod.stock}</strong></td>
                       <td>
                         <span className={badgeClass}>{badgeText}</span>
