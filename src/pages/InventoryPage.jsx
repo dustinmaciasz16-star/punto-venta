@@ -8,6 +8,18 @@ export const InventoryPage = () => {
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [presentations, setPresentations] = useState([]);
+  const [showPresentations, setShowPresentations] = useState(false);
+  const [showPresentationForm, setShowPresentationForm] = useState(false);
+
+  const initialPresentationState = {
+    nombre_presentacion: '',
+    cantidad_unidades: '',
+    precio_venta: ''
+  };
+
+  const [presentationForm, setPresentationForm] = useState(initialPresentationState);
 
   const initialFormState = {
     nombre_producto: '',
@@ -35,8 +47,65 @@ export const InventoryPage = () => {
     }
   };
 
+  const handlePresentaciones = async (product) => {
+    try {
+      const res = await api.get(
+        `/productos/presentaciones.php?id_producto=${product.id_producto}`
+      );
+
+      if (res.data.status === 'success') {
+        setSelectedProduct(product);
+        setPresentations(res.data.data);
+        setShowPresentations(true);
+      }
+    } catch (err) {
+      alert(
+        err.response?.data?.message ||
+        "Error al cargar las presentaciones."
+      );
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handlePresentationChange = (e) => {
+    setPresentationForm({
+      ...presentationForm,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePresentationSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await api.post('/productos/presentaciones.php', {
+        id_producto: selectedProduct.id_producto,
+        nombre_presentacion: presentationForm.nombre_presentacion,
+        cantidad_unidades: presentationForm.cantidad_unidades,
+        precio_venta: presentationForm.precio_venta
+      });
+
+      if (res.data.status === 'success') {
+        alert("Presentación guardada correctamente.");
+
+        const updated = await api.get(
+          `/productos/presentaciones.php?id_producto=${selectedProduct.id_producto}`
+        );
+
+        setPresentations(updated.data.data);
+
+        setPresentationForm(initialPresentationState);
+        setShowPresentationForm(false);
+      }
+    } catch (err) {
+      alert(
+        err.response?.data?.message ||
+        "Error al guardar la presentación."
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -206,6 +275,7 @@ export const InventoryPage = () => {
                         <td>
                           <div className="table-actions">
                             <button className="btn-action" onClick={() => handleEdit(p)} title="Editar Producto">✏️ Editar</button>
+                            <button className="btn-action" onClick={() => handlePresentaciones(p)} > 📦 Presentaciones </button>
                             <button className="btn-action btn-danger-soft" onClick={() => handleDelete(p.id_producto)} title="Eliminar Producto">🗑️ Eliminar</button>
                           </div>
                         </td>
@@ -218,6 +288,126 @@ export const InventoryPage = () => {
           </div>
         )}
       </div>
+      {showPresentations && selectedProduct && (
+        <div className="modal-overlay">
+          <div className="presentation-modal">
+
+            <div className="modal-header">
+              <div>
+                <h2>📦 Presentaciones</h2>
+                <p>
+                  {selectedProduct.nombre_producto} - {selectedProduct.codigo_producto}
+                </p>
+              </div>
+
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowPresentations(false);
+                  setShowPresentationForm(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+
+              {presentations.length === 0 ? (
+                <p className="no-presentations">
+                  Este producto todavía no tiene presentaciones.
+                </p>
+              ) : (
+                <div className="presentations-list">
+                  {presentations.map((presentation) => (
+                    <div
+                      className="presentation-item"
+                      key={presentation.id_presentacion}
+                    >
+                      <div>
+                        <strong>{presentation.nombre_presentacion}</strong>
+                        <span>
+                          {presentation.cantidad_unidades} unidad(es)
+                        </span>
+                      </div>
+
+                      <strong>
+                        ${parseFloat(presentation.precio_venta).toFixed(2)}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!showPresentationForm && (
+                <button
+                  className="btn-submit"
+                  onClick={() => setShowPresentationForm(true)}
+                >
+                  + Agregar presentación
+                </button>
+              )}
+
+              {showPresentationForm && (
+                <form
+                  onSubmit={handlePresentationSubmit}
+                  className="presentation-form"
+                >
+                  <h3>Nueva presentación</h3>
+
+                  <input
+                    type="text"
+                    name="nombre_presentacion"
+                    placeholder="Nombre (Ej: Caja x12)"
+                    value={presentationForm.nombre_presentacion}
+                    onChange={handlePresentationChange}
+                    required
+                  />
+
+                  <input
+                    type="number"
+                    name="cantidad_unidades"
+                    placeholder="Cantidad de unidades"
+                    min="1"
+                    value={presentationForm.cantidad_unidades}
+                    onChange={handlePresentationChange}
+                    required
+                  />
+
+                  <input
+                    type="number"
+                    name="precio_venta"
+                    placeholder="Precio de venta"
+                    min="0"
+                    step="0.01"
+                    value={presentationForm.precio_venta}
+                    onChange={handlePresentationChange}
+                    required
+                  />
+
+                  <div className="buttons-group">
+                    <button type="submit" className="btn-submit">
+                      Guardar
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-warning"
+                      onClick={() => {
+                        setShowPresentationForm(false);
+                        setPresentationForm(initialPresentationState);
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
