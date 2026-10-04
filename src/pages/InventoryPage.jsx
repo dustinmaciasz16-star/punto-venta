@@ -10,12 +10,11 @@ export const InventoryPage = () => {
   const [loading, setLoading] = useState(true);
 
   const initialFormState = {
-    codigo_producto: '',
     nombre_producto: '',
     descripcion: '',
-    precio: '',
     stock: '',
-    stock_minimo: '5'
+    stock_minimo: '5',
+    stock_maximo: '50'
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -64,12 +63,11 @@ export const InventoryPage = () => {
   const handleEdit = (p) => {
     setEditingId(p.id_producto);
     setFormData({
-      codigo_producto: p.codigo_producto || '',
       nombre_producto: p.nombre_producto || '',
       descripcion: p.descripcion || '',
-      precio: p.precio || '',
       stock: p.stock || '',
-      stock_minimo: p.stock_minimo || '5'
+      stock_minimo: p.stock_minimo || '5',
+      stock_maximo: p.stock_maximo || '50'
     });
   };
 
@@ -101,30 +99,66 @@ export const InventoryPage = () => {
 
   return (
     <div className="main-content inventory-container">
-      
+
       {/* Formulario */}
       <div className="form-card">
         <h2 className="section-title">{editingId ? '✏️ Editar Producto' : '📦 Nuevo Producto'}</h2>
         <form onSubmit={handleSubmit} className="product-form">
           <div className="form-group">
-            <input type="text" name="codigo_producto" placeholder="Código / SKU *" value={formData.codigo_producto} onChange={handleChange} required />
+            <input
+              type="text"
+              name="nombre_producto"
+              placeholder="Nombre *"
+              value={formData.nombre_producto}
+              onChange={handleChange}
+              required
+            />
           </div>
+
           <div className="form-group">
-            <input type="text" name="nombre_producto" placeholder="Nombre *" value={formData.nombre_producto} onChange={handleChange} required />
+            <input
+              type="number"
+              min="0"
+              name="stock"
+              placeholder="Stock *"
+              value={formData.stock}
+              onChange={handleChange}
+              required
+            />
           </div>
+
           <div className="form-group">
-            <input type="number" step="0.01" min="0" name="precio" placeholder="Precio ($) *" value={formData.precio} onChange={handleChange} required />
+            <input
+              type="number"
+              min="0"
+              name="stock_minimo"
+              placeholder="Stock Mínimo"
+              value={formData.stock_minimo}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="form-group">
-            <input type="number" min="0" name="stock" placeholder="Stock *" value={formData.stock} onChange={handleChange} required />
+            <input
+              type="number"
+              min="0"
+              name="stock_maximo"
+              placeholder="Stock Máximo"
+              value={formData.stock_maximo}
+              onChange={handleChange}
+            />
           </div>
-          <div className="form-group">
-            <input type="number" min="0" name="stock_minimo" placeholder="Stock Mínimo" value={formData.stock_minimo} onChange={handleChange} />
-          </div>
+
           <div className="form-group form-group-full">
-            <input type="text" name="descripcion" placeholder="Descripción opcional" value={formData.descripcion} onChange={handleChange} />
+            <input
+              type="text"
+              name="descripcion"
+              placeholder="Descripción opcional"
+              value={formData.descripcion}
+              onChange={handleChange}
+            />
           </div>
-          
+
           <div className="buttons-group form-group-full">
             <button type="submit" className="btn-submit">{editingId ? 'Guardar Cambios' : 'Guardar Producto'}</button>
             {editingId && <button type="button" onClick={resetForm} className="btn-warning">Cancelar</button>}
@@ -136,10 +170,10 @@ export const InventoryPage = () => {
       <div className="table-card">
         <div className="inventory-header-controls">
           <h2 className="section-title">📊 Catálogo de Inventario</h2>
-          <input 
-            type="text" 
-            placeholder="🔍 Buscar por código o nombre..." 
-            value={search} 
+          <input
+            type="text"
+            placeholder="🔍 Buscar por código o nombre..."
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="search-input"
           />
@@ -154,7 +188,6 @@ export const InventoryPage = () => {
                 <tr>
                   <th>Código</th>
                   <th>Producto</th>
-                  <th>Precio</th>
                   <th>Stock</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -163,7 +196,7 @@ export const InventoryPage = () => {
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="no-data">No se encontraron productos en inventario.</td>
+                    <td colSpan="5" className="no-data">No se encontraron productos en inventario.</td>
                   </tr>
                 ) : (
                   filteredProducts.map((p) => {
@@ -174,7 +207,6 @@ export const InventoryPage = () => {
                       <tr key={p.id_producto}>
                         <td><strong>{p.codigo_producto}</strong></td>
                         <td>{p.nombre_producto}</td>
-                        <td className="amount">${parseFloat(p.precio || 0).toFixed(2)}</td>
                         <td><strong>{currentStock}</strong></td>
                         <td>
                           {currentStock <= 0 ? (
