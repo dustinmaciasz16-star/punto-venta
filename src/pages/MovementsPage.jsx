@@ -29,14 +29,34 @@ export const MovementsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await api.post('/movimientos/index.php', formData);
+      const res = await api.post('/movimientos/index.php', {
+        ...formData,
+        cantidad: Number(formData.cantidad)
+      });
+
       if (res.data.status === 'success') {
-        setFormData({ id_producto: '', tipo_movimiento: 'ENTRADA', cantidad: '', motivo: '' });
+        alert(res.data.message);
+
+        setFormData({
+          id_producto: '',
+          tipo_movimiento: 'ENTRADA',
+          cantidad: '',
+          motivo: ''
+        });
+
+        fetchProducts();
         fetchMovements();
+      } else {
+        alert(res.data.message);
       }
+
     } catch (err) {
-      alert("Error al registrar movimiento");
+      alert(
+        err.response?.data?.message ||
+        "Error al registrar movimiento"
+      );
     }
   };
 
@@ -46,10 +66,10 @@ export const MovementsPage = () => {
       <div className="form-card">
         <h2 className="section-title">📋 Registrar Movimiento de Stock</h2>
         <form onSubmit={handleSubmit} className="product-form">
-          <select 
-            name="id_producto" 
-            value={formData.id_producto} 
-            onChange={(e) => setFormData({ ...formData, id_producto: e.target.value })} 
+          <select
+            name="id_producto"
+            value={formData.id_producto}
+            onChange={(e) => setFormData({ ...formData, id_producto: e.target.value })}
             required
             style={{ padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
           >
@@ -61,30 +81,37 @@ export const MovementsPage = () => {
             ))}
           </select>
 
-          <select 
-            name="tipo_movimiento" 
-            value={formData.tipo_movimiento} 
+          <select
+            name="tipo_movimiento"
+            value={formData.tipo_movimiento}
             onChange={(e) => setFormData({ ...formData, tipo_movimiento: e.target.value })}
             style={{ padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
           >
-            <option value="ENTRADA">ENTRADA (Reabastecimiento)</option>
+            <option value="ENTRADA">ENTRADA (Ajuste)</option>
             <option value="SALIDA">SALIDA (Ajuste / Merma)</option>
           </select>
 
-          <input 
-            type="number" 
-            placeholder="Cantidad *" 
-            value={formData.cantidad} 
-            onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })} 
-            required 
+          <input
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Cantidad *"
+            value={formData.cantidad}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                cantidad: e.target.value
+              })
+            }
+            required
           />
 
-          <input 
-            type="text" 
-            placeholder="Motivo (Ej. Compra factura #123, Producto dañado)" 
-            value={formData.motivo} 
-            onChange={(e) => setFormData({ ...formData, motivo: e.target.value })} 
-            className="form-group-full" 
+          <input
+            type="text"
+            placeholder="Motivo (Ej. Compra factura #123, Producto dañado)"
+            value={formData.motivo}
+            onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+            className="form-group-full"
           />
 
           <button type="submit" className="btn-submit form-group-full">Registrar Movimiento</button>
@@ -102,6 +129,7 @@ export const MovementsPage = () => {
                 <th>Producto</th>
                 <th>Tipo</th>
                 <th>Cantidad</th>
+                <th>Stock resultante</th>
                 <th>Motivo</th>
               </tr>
             </thead>
@@ -116,6 +144,7 @@ export const MovementsPage = () => {
                     </span>
                   </td>
                   <td>{m.cantidad}</td>
+                  <td> <strong>{m.stock_resultante}</strong> </td>
                   <td>{m.motivo || '-'}</td>
                 </tr>
               ))}
