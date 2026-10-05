@@ -1,12 +1,14 @@
 // src/pages/ProveedoresPage.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
+import './Proveedor.css';
 
 export const ProveedoresPage = () => {
   const [proveedores, setProveedores] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
     cedula: '',
@@ -38,20 +40,125 @@ export const ProveedoresPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleNewProveedor = () => {
+    setEditingId(null);
+
+    setFormData({
+      cedula: '',
+      nombre: '',
+      apellido: '',
+      telefono: '',
+      correo: '',
+      direccion: ''
+    });
+
+    setModalOpen(true);
+  };
+
+  const handleEdit = (proveedor) => {
+    setEditingId(proveedor.id_proveedor);
+
+    setFormData({
+      cedula: proveedor.cedula || '',
+      nombre: proveedor.nombre || '',
+      apellido: proveedor.apellido || '',
+      telefono: proveedor.telefono || '',
+      correo: proveedor.correo || '',
+      direccion: proveedor.direccion || ''
+    });
+
+    setModalOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await api.post('/proveedores/index.php', formData);
+
+      let res;
+
+      if (editingId === null) {
+
+        // Crear proveedor
+        res = await api.post('/proveedores/index.php', formData);
+
+      } else {
+
+        // Editar proveedor
+        res = await api.put('/proveedores/index.php', {
+          id_proveedor: editingId,
+          ...formData
+        });
+      }
+
       if (res.data.status === 'success') {
-        alert("Proveedor guardado correctamente.");
+
+        alert(res.data.message);
+
         setModalOpen(false);
-        setFormData({ cedula: '', nombre: '', apellido: '', telefono: '', correo: '', direccion: '' });
+
+        setEditingId(null);
+
+        setFormData({
+          cedula: '',
+          nombre: '',
+          apellido: '',
+          telefono: '',
+          correo: '',
+          direccion: ''
+        });
+
         fetchProveedores();
       }
+
     } catch (err) {
-      alert("Error al registrar proveedor.");
+
+      console.error("Error:", err);
+
+      alert(
+        err.response?.data?.message ||
+        "Error al guardar el proveedor."
+      );
     }
   };
+
+  const handleDelete = async (idProveedor) => {
+
+    const confirmar = window.confirm(
+      "¿Seguro que deseas desactivar este proveedor?"
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+
+      const res = await api.delete('/proveedores/index.php', {
+        data: {
+          id_proveedor: idProveedor
+        }
+      });
+
+      if (res.data.status === 'success') {
+
+        alert(res.data.message);
+
+        fetchProveedores();
+      }
+
+    } catch (err) {
+
+      console.error("Error:", err);
+
+      alert(
+        err.response?.data?.message ||
+        "Error al desactivar el proveedor."
+      );
+    }
+  };
+
+
 
   const filteredProveedores = proveedores.filter(p =>
     p.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -66,15 +173,15 @@ export const ProveedoresPage = () => {
           <h2>🚚 Gestión de Proveedores</h2>
           <p className="subtitle">Administra a tus distribuidores de productos y suministros.</p>
         </div>
-        <button className="btn-primary" onClick={() => setModalOpen(true)}>
+        <button className="btn-primary" onClick={handleNewProveedor}>
           ➕ Nuevo Proveedor
         </button>
       </div>
 
       <div className="table-controls">
-        <input 
-          type="text" 
-          placeholder="🔍 Buscar por RUC/Cédula, Razón Social o Código..." 
+        <input
+          type="text"
+          placeholder="🔍 Buscar por RUC/Cédula, Razón Social o Código..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="search-input"
@@ -95,12 +202,13 @@ export const ProveedoresPage = () => {
                 <th>Correo</th>
                 <th>Dirección</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredProveedores.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="no-data">No se encontraron proveedores.</td>
+                  <td colSpan="8" className="no-data">No se encontraron proveedores.</td>
                 </tr>
               ) : (
                 filteredProveedores.map((p) => (
@@ -116,6 +224,23 @@ export const ProveedoresPage = () => {
                         {p.estado.toUpperCase()}
                       </span>
                     </td>
+                    <td>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handleEdit(p)}
+                      >
+                        ✏️
+                      </button>
+
+                      {p.estado === 'activo' && (
+                        <button
+                          className="btn-danger"
+                          onClick={() => handleDelete(p.id_proveedor)}
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -129,7 +254,11 @@ export const ProveedoresPage = () => {
         <div className="modal-overlay">
           <div className="modal-container">
             <div className="modal-header">
-              <h3>Registrar Proveedor</h3>
+              <h3>
+                {editingId === null
+                  ? 'Registrar Proveedor'
+                  : 'Editar Proveedor'}
+              </h3>
               <button className="btn-close" onClick={() => setModalOpen(false)}>×</button>
             </div>
 
@@ -168,7 +297,11 @@ export const ProveedoresPage = () => {
 
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar Proveedor</button>
+                <button type="submit" className="btn-primary">
+                  {editingId === null
+                    ? 'Guardar Proveedor'
+                    : 'Actualizar Proveedor'}
+                </button>
               </div>
             </form>
           </div>
